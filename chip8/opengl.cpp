@@ -82,7 +82,7 @@ int main(int argc, char ** argv)
 	char name[512] = {0};
 	OPENFILENAMEA opf;
 	opf.hwndOwner = 0;
-opf.lpstrFilter = "All files\0\*.*\0\0";
+opf.lpstrFilter = "All files\0\0*.*\0\0";
 opf.lpstrCustomFilter = 0;
 opf.nMaxCustFilter = 0L;
 opf.nFilterIndex = 1L;

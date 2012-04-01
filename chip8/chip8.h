@@ -34,12 +34,12 @@ private:
 
 	u12 I;
 	u12 PC;
-
+	u12 NPC;
 	u8 delay_timer;
 	u8 sound_timer;
 
 	u12 stack[STACK_SIZE];
 	u8 sp;
-
+	void runOP0(u16 opcode);
 };
 #endif

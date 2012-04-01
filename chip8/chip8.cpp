@@ -137,35 +137,9 @@ u12 chip8::runOP (u16 opcode)
 	u8 nibble = HI_UPPER_NIBBLE(opcode);
 	switch (nibble)
 	{
+		
 	case OPCODE_ZERO:
-		switch (LO_BYTE(opcode))
-		{
-			case OPCODE_ZERO_CLEAR_SCREEN:
-			//00E0	Clears the screen.
-				clear_screen();
-				break;
-			case OPCODE_ZERO_RETURN:
-			{
-			//00EE	Returns from a subroutine.
-				u12 ret = stack[sp];
-				stack[sp] = 0;
-				if (sp > 0)
-					sp--;
-				NPC = ret+2;
-			}
-				break;
-			default:
-			/*{
-			//0NNN	Calls RCA 1802 program at address NNN.
-				u12 address = MEMORY_ADDRESS(opcode);
-				if (sp == 0xF)
-					;//error
-				sp++;
-				stack[sp] = NPC;
-				NPC = address;
-			}*/
-			break;
-		}
+		runOP0(opcode);
 		break;
 	case OPCODE_JUMP:
 	{
@@ -270,8 +244,8 @@ u12 chip8::runOP (u16 opcode)
 				reg[0xF] = 0;
 			}
 			reg[X] = reg[X] + reg[Y];
-			break;
 		}
+			break;
 		case OPCODE_8_SUB_X_Y:
 		// 8XY5	VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
 		{
@@ -285,8 +259,8 @@ u12 chip8::runOP (u16 opcode)
 				reg[0xF] = 1;
 			}
 			reg[X] = sum;
-			break;
 		}
+			break;
 		case OPCODE_8_RSHIFT:
 		// 8XY6	Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift.[2]
 			reg[0xF] = reg[X] & 1;
@@ -304,13 +278,15 @@ u12 chip8::runOP (u16 opcode)
 				reg[0xF] = 1;
 			}
 			reg[X] = reg[Y] - reg[X];
-			break;
 		}
+			break;
 		case OPCODE_8_LSHIFT:
 		// 8XYE	Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift.[2]
 			reg[0xF] = (reg[X]>>7 & 1);
 			reg[X] <<= 1;
 			break;
+		default:
+			printf("invalid op %x", opcode);
 		}
 	}
 		break;
@@ -348,6 +324,8 @@ u12 chip8::runOP (u16 opcode)
 		u8 X = HI_LOWER_NIBBLE(opcode);
 		u8 Y = LO_UPPER_NIBBLE(opcode);
 		u8 N = LO_LOWER_NIBBLE(opcode);
+		if (N == 0)
+			printf("implementme");
 		draw_sprite(reg[X], reg[Y], N);
 	}
 		break;
@@ -368,20 +346,20 @@ u12 chip8::runOP (u16 opcode)
 				NPC = NPC + 2;//TODO	
 			break;
 		default:
-			printf("invalid option %x", LO_BYTE(opcode));
+			printf("invalid op %x", opcode);
 		}
 	}
 		break;
-	case OPCODE_TIMER:
+	case OPCODE_LOAD:
 	{
 		u8 X = HI_LOWER_NIBBLE(opcode);
 		switch (LO_BYTE(opcode))
 		{
-		case OPCODE_TIMER_MOV:
+		case OPCODE_LOAD_MOV:
 		//FX07	Sets VX to the value of the delay timer.
 			reg[X] = delay_timer;
 			break;
-		case OPCODE_TIMER_WAIT_KEY:
+		case OPCODE_LOAD_WAIT_KEY:
 		{
 			// FX0A	A key press is awaited, and then stored in VX.
 			bool keypressed = false;
@@ -396,15 +374,15 @@ u12 chip8::runOP (u16 opcode)
 			//if (!keypressed) NPC = PC;
 		}
 			break;
-		case OPCODE_TIMER_SET_DELAY:
+		case OPCODE_LOAD_SET_DELAY:
 		// FX15	Sets the delay timer to VX.
 			delay_timer = reg[X];
 			break;
-		case OPCODE_TIMER_SET_SOUND:
+		case OPCODE_LOAD_SET_SOUND:
 		// FX18	Sets the sound timer to VX.
 			sound_timer = reg[X];
 			break;
-		case OPCODE_TIMER_ADD_VX_I:
+		case OPCODE_LOAD_ADD_VX_I:
 		// FX1E	Adds VX to I.[3]
 			if ((0xFFF - I.to_u16()) < reg[X])
 				reg[0xF] = 1;
@@ -412,12 +390,19 @@ u12 chip8::runOP (u16 opcode)
 				reg[0xF] = 0;
 			I = I + reg[X];
 			break;
-		case OPCODE_TIMER_SET_I:
+		case OPCODE_LOAD_SET_I:
 		// FX29	Sets I to the location of the sprite for the character in VX.
 		// Characters 0-F (in hexadecimal) are represented by a 4x5 font.
 			I = u12(reg[X]) * 5;
 			break;
-		case OPCODE_TIMER_STORE_DECIMAL:
+		case OPCODE_LOAD_SET_I_SCHIP10:
+		// FX29	Sets I to the location of the sprite for the character in VX.
+		// Characters 0-F (in hexadecimal) are represented by a 4x5 font.
+			///I = u12(reg[X]) * 5;
+			printf("implementme");
+			break;
+
+		case OPCODE_LOAD_STORE_DECIMAL:
 		// FX33	Stores the Binary-coded decimal representation of VX,
 		// with the most significant of three digits at the address in I,
 		// the middle digit at I plus 1, and the least significant digit at I plus 2.
@@ -427,14 +412,14 @@ u12 chip8::runOP (u16 opcode)
 			memory[I.to_u16() + 2] = (value % 10);
 		}
 			break;
-		case OPCODE_TIMER_STORE_REG:
+		case OPCODE_LOAD_STORE_REG:
 		// FX55	Stores V0 to VX in memory starting at address I.[4]
 			for (int i = 0; i <= X; ++i)
 			{
 				memory[I.to_u16() + i] = reg[i];
 			}
 			break;
-		case OPCODE_TIMER_RETRIEVE_REG:
+		case OPCODE_LOAD_RETRIEVE_REG:
 		// FX65	Fills V0 to VX with values from memory starting at address I.[4]
 			for (int i = 0; i <= X; ++i)
 			{
@@ -442,10 +427,19 @@ u12 chip8::runOP (u16 opcode)
 			}
 			I = I + X + 1;
 			break;
+		
+		case OPCODE_LOAD_STORE_REG_FLAGS_SCHIP10:
+		//FX75
+		case OPCODE_LOAD_RETRIEVE_REG_FLAGS_SCHIP10:
+		//FX85
+			printf("implementme");
+			break;
+		default:
+			printf("invalid op %x", opcode);
 		}
 	}
-		break;
 	default:
+			printf("invalid op %x", opcode);
 		break;
 	}
 
@@ -477,4 +471,75 @@ void chip8::debugRender()
 		printf("\n");
 	}
 	printf("\n");
+}
+
+
+void chip8::runOP0(u16 opcode)
+{
+	switch (HI_LOWER_NIBBLE(opcode))
+	{
+	case 0:
+		switch (LO_BYTE(opcode))
+		{
+			case OPCODE_ZERO_CLEAR_SCREEN:
+			//00E0	Clears the screen.
+				clear_screen();
+				break;
+			case OPCODE_ZERO_RETURN:
+			{
+			//00EE	Returns from a subroutine.
+				u12 ret = stack[sp];
+				stack[sp] = 0;
+				if (sp > 0)
+					sp--;
+				NPC = ret+2;
+			}
+				break;
+			case SCHIP11_OPCODE_ZERO_SCROLL_RIGHT:
+			{
+			// 00FB
+			}
+				break;
+			case SCHIP11_OPCODE_ZERO_SCROLL_LEFT:
+			{
+			//00FC
+			}
+				break;
+			case SCHIP10_OPCODE_ZERO_EXIT:
+			{
+			//00FD
+			}
+				break;	
+			case SCHIP10_OPCODE_ZERO_DISABLE_EXT_SCN:
+			{
+			//00FE
+			}
+				break;	
+			case SCHIP10_OPCODE_ZERO_ENABLE_EXT_SCN:
+			{
+			//00FF
+			}
+				break;	
+			default:
+				if ((LO_BYTE(opcode) & 0xF0) == SCHIP11_OPCODE_ZERO_SCROLL_DOWN)
+				{
+				//00CN
+				}
+				else
+					printf("invalid op, %x", opcode);
+				break;
+		}
+		break;
+	default:
+		/*{
+		//0NNN	Calls RCA 1802 program at address NNN.
+			u12 address = MEMORY_ADDRESS(opcode);
+			if (sp == 0xF)
+				;//error
+			sp++;
+			stack[sp] = NPC;
+			NPC = address;
+		}*/
+		break;
+	}
 }

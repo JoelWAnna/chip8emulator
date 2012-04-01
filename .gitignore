@@ -1,0 +1,7 @@
+chip8/Debug/
+*.user
+*.opensdf
+*.sdf
+*.suo
+Debug/
+ipch/

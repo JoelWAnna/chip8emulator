@@ -1,0 +1,164 @@
+const int NUMBER_OF_REGS = 16;
+const int STACK_SIZE = 16;
+const int FONT_SIZE = 80;
+const int MEMORY_SIZE = 4096;
+const int PROGRAM_START = 0x200;
+
+
+u16 opcode;
+u8 memory[MEMORY_SIZE];
+u8 reg[NUMBER_OF_REGS];
+
+u8 I;
+u8 PC;
+
+// 0x000-0x1FF - Chip 8 interpreter (contains font set in emu)
+// 0x050-0x0A0 - Used for the built in 4x5 pixel font set (0-F)
+// 0x200-0xFFF - Program ROM and work RAM
+
+u8 gfx[64*32];
+u8 delay_timer;
+u8 sound_timer;
+
+u16 stack[STACK_SIZE];
+u16 sp;
+
+u8 key[16];
+
+u8 chip8_fontset[FONT_SIZE] = { 
+  0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+  0x20, 0x60, 0x20, 0x20, 0x70, // 1
+  0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+  0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+  0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+  0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+  0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+  0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+  0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+  0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+  0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+  0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+  0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+  0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+  0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+  0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
+
+void chip8::initialize()
+{
+  pc     = PROGRAM_START;  // Program counter starts at 0x200
+  opcode = 0;      // Reset current opcode
+  I      = 0;      // Reset index register
+  sp     = 0;      // Reset stack pointer
+ 
+  // Clear display
+  // Clear stack
+  memset(stack, 0, STACK_SIZE);
+  // Clear registers V0-VF
+  memset(reg, 0, NUMBER_OF_REGS);
+  // Clear memory
+  memset(memory, 0, MEMORY_SIZE);
+ 
+  // Load fontset
+  for(int i = 0; i < FONT_SIZE; ++i)
+    memory[i] = chip8_fontset[i];
+ 
+  // Reset timers
+}
+
+
+for(int i = 0; i < bufferSize; ++i)
+  memory[i + PROGRAM_START] = buffer[i];
+#define OP_RETURN  0x00EE
+#define OP_CLEAR_SCREEN  0x00E0
+#define OPCODE_ZERO  0x0
+#define OPCODE_JUMP  0x1
+#define OPCODE_CALL  0x2
+#define OPCODE_JUMPEQ  0x3
+#define OPCODE_JNE  0x4
+#define OPCODE_JEQ_REG  0x5
+#define OPCODE_SETREG  0x6
+#define OPCODE_ADD  0x7
+#define OPCODE_FIXME  0x8
+#define OPCODE_JNE_REG  0x9
+#define OPCODE_SET_I  0xA
+#define OPCODE_JUMP_OFFSET  0xB
+#define OPCODE_RAND  0xC
+#define OPCODE_SPRITE  0xD
+#define OPCODE_JUMP_KEY  0xE
+#define OPCODE_TIMER  0xF
+
+
+switch (opcode>>12)
+{
+case OPCODE_ZERO:
+	switch (opcode)
+	{
+		case OP_CLEAR_SCREEN:
+			clear_screen();
+			return;
+		case OP_RETURN:
+			break;
+		default:
+		//0NNN	Calls RCA 1802 program at address NNN.
+		return;
+	}
+case OPCODE_JUMP:
+case OPCODE_CALL:
+case OPCODE_JUMPEQ:
+case OPCODE_JNE:
+case OPCODE_JEQ_REG:
+case OPCODE_SETREG:
+case OPCODE_ADD:
+case OPCODE_FIXME:
+case OPCODE_JNE_REG:
+case OPCODE_SET_I:
+case OPCODE_JUMP_OFFSET:
+case OPCODE_RAND:
+case OPCODE_SPRITE:
+case OPCODE_JUMP_KEY:
+case OPCODE_TIMER:
+default:
+	break;
+}
+CHIP-8 has 35 opcodes, which are all two bytes long. The most significant byte is stored first. The opcodes are listed below, in hexadecimal and with the following symbols:
+NNN: address
+NN: 8-bit constant
+N: 4-bit constant
+X and Y: 4-bit register identifier
+Opcode	Explanation
+0NNN	Calls RCA 1802 program at address NNN.
+00E0	Clears the screen.
+00EE	Returns from a subroutine.
+1NNN	Jumps to address NNN.
+2NNN	Calls subroutine at NNN.
+3XNN	Skips the next instruction if VX equals NN.
+4XNN	Skips the next instruction if VX doesn't equal NN.
+5XY0	Skips the next instruction if VX equals VY.
+6XNN	Sets VX to NN.
+7XNN	Adds NN to VX.
+8XY0	Sets VX to the value of VY.
+8XY1	Sets VX to VX or VY.
+8XY2	Sets VX to VX and VY.
+8XY3	Sets VX to VX xor VY.
+8XY4	Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
+8XY5	VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
+8XY6	Shifts VX right by one. VF is set to the value of the least significant bit of VX before the shift.[2]
+8XY7	Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
+8XYE	Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift.[2]
+9XY0	Skips the next instruction if VX doesn't equal VY.
+ANNN	Sets I to the address NNN.
+BNNN	Jumps to the address NNN plus V0.
+CXNN	Sets VX to a random number and NN.
+DXYN	Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels. Each row of 8 pixels is read as bit-coded (with the most significant bit of each byte displayed on the left) starting from memory location I; I value doesn't change after the execution of this instruction. As described above, VF is set to 1 if any screen pixels are flipped from set to unset when the sprite is drawn, and to 0 if that doesn't happen.
+EX9E	Skips the next instruction if the key stored in VX is pressed.
+EXA1	Skips the next instruction if the key stored in VX isn't pressed.
+FX07	Sets VX to the value of the delay timer.
+FX0A	A key press is awaited, and then stored in VX.
+FX15	Sets the delay timer to VX.
+FX18	Sets the sound timer to VX.
+FX1E	Adds VX to I.[3]
+FX29	Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font.
+FX33	Stores the Binary-coded decimal representation of VX, with the most significant of three digits at the address in I, the middle digit at I plus 1, and the least significant digit at I plus 2.
+FX55	Stores V0 to VX in memory starting at address I.[4]
+FX65	Fills V0 to VX with values from memory starting at address I.[4]

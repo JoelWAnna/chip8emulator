@@ -14,43 +14,50 @@ import android.opengl.GLU;
 //http://blog.jayway.com/2009/12/03/opengl-es-tutorial-for-android-part-i/
 public class Chip8 implements Renderer {
 
-	private void drawrect(GL10 gl, Point p)
+	private int modifier;
+
+	private FloatBuffer[] rectbuffer(Point origin, float size)
 	{
-		final int modifier = 2;
-		
-		float vertices[]  = {
-				0,0,0,
-				0,.5f,0,
-				.5f,.5f,0,
-				.5f,0,0,
-				0,.5f,0,
-				.5f,.5f,0,
-				.5f,0,0,
-				0,0,0,
+		float t1_verts[] = {
+				origin.x, origin.y, 0,
+				origin.x, origin.y+size, 0,
+				origin.x+size, origin.y+size, 0,
 		};
-		float verticesa[] ={
-				-1,-1,0,
-				-1,1, 0,
-				1,1,0,
-				1,-1,0,
-		//	(p.x * modifier), (p.y * modifier) + 0.0f,	 0.0f,
-	//		(p.x * modifier) + 0.0f,     (p.y * modifier) + modifier, 0.0f,
-	//		(p.x * modifier) + modifier, (p.y * modifier) + modifier, 0.0f,
-	//		(p.x * modifier) + modifier, (p.y * modifier) + 0.0f,	 0.0f,
+		float t2_verts [] = {
+
+				origin.x, origin.y, 0,
+				origin.x+size, origin.y+size, 0,
+				origin.x+size, origin.y, 0,
 		};
+		FloatBuffer f[] = new FloatBuffer[2];
+		f[0] = asfloatBuffer(t1_verts);
+		f[1] = asfloatBuffer(t2_verts);
+		return f;
+
+	}
+
+	private FloatBuffer asfloatBuffer(float [] vertices)
+	{
 		ByteBuffer vbb = ByteBuffer.allocateDirect(vertices.length * 4);
 		vbb.order(ByteOrder.nativeOrder());
 		FloatBuffer vertexBuffer = vbb.asFloatBuffer();
 		vertexBuffer.put(vertices);
 		vertexBuffer.position(0);
+		return vertexBuffer;
+	}
 
-		// Specifies the location and data format of an array of vertex
-		// coordinates to use when rendering.
+	private void drawRECT(GL10 gl, Point origin)
+	{
+		//modifier = 10;
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);// OpenGL docs.
+		FloatBuffer f[] = rectbuffer(origin, modifier);
+		for (FloatBuffer x : f)
+		{
 		//gl.glTranslatef(0, 0, -4);
 			gl.glColor4f(1, 0, 1, .5f);
-		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertexBuffer); // OpenGL docs.
+		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, x); // OpenGL docs.
 		gl.glDrawArrays(GL10.GL_TRIANGLES, 0, 4 );
+		}
 		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);// OpenGL docs.
 	}
 
@@ -58,32 +65,21 @@ public class Chip8 implements Renderer {
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | // OpenGL docs.
                 GL10.GL_DEPTH_BUFFER_BIT);
 
-	//When you are done with the buffer don't forget to disable it.
-		drawrect(gl, new Point(0,0));
-		
-		///////////////////////
-		// Disable the vertices buffer.
-		//GL10.
-		//gl.glVertexPointer(3, type, stride, pointer)
+		drawRECT(gl, new Point(0,0));
+
 	}
 
 	public void onSurfaceChanged(GL10 gl, int w, int h) {
-		// Sets the current view port to the new size.
 		gl.glViewport(0, 0, w, h);
-		// Select the projection matrix
 		gl.glMatrixMode(GL10.GL_PROJECTION);
-		// Reset the projection matrix
-		gl.glLoadIdentity();// OpenGL docs.
-		//gl.glOrthof(0, w, h, 0, 0, 1);
+		gl.glLoadIdentity();
 		
+		gl.glMatrixMode(GL10.GL_MODELVIEW);
+		gl.glLoadIdentity();
+		gl.glOrthof(0, w, h, 0, -1,1);
 		// Calculate the aspect ratio of the window
-	/*	GLU.gluPerspective(gl, 45.0f,
-                                   (float) w / (float) h,
-                                   0.1f, 100.0f);
-	*/	// Select the modelview matrix
-		gl.glMatrixMode(GL10.GL_MODELVIEW);// OpenGL docs.
-		// Reset the modelview matrix
-	//	gl.glLoadIdentity();// OpenGL docs.
+		GLU.gluPerspective(gl, 45.0f, (float) w / (float) h,  -1, 1);
+		modifier = w/64;
 	}
 
 	public void onSurfaceCreated(GL10 gl, EGLConfig arg1) {

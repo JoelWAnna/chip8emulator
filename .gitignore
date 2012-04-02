@@ -5,3 +5,4 @@ chip8/Debug/
 *.suo
 Debug/
 ipch/
+chip8-android/bin

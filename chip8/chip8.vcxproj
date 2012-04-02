@@ -39,11 +39,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\Documents\Source\chip8\GLUT;D:\Documents\Source\chip8\GLew\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\Documents\Source\chip8\GLUT;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\GLUT;../GLew\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\GLUT;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>..\GLUT;../GLew\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\GLUT;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

@@ -12,9 +12,13 @@ import android.graphics.Point;
 import android.opengl.GLSurfaceView.Renderer;
 import android.opengl.GLU;
 //http://blog.jayway.com/2009/12/03/opengl-es-tutorial-for-android-part-i/
-public class Chip8 implements Renderer {
+public class Chip8Renderer implements Renderer {
 
 	private int modifier;
+	Chip8core foo;
+	public Chip8Renderer() {
+		
+	}
 
 	private FloatBuffer[] rectbuffer(Point origin, float size)
 	{
@@ -54,7 +58,6 @@ public class Chip8 implements Renderer {
 		for (FloatBuffer x : f)
 		{
 		//gl.glTranslatef(0, 0, -4);
-			gl.glColor4f(1, 0, 1, .5f);
 		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, x); // OpenGL docs.
 		gl.glDrawArrays(GL10.GL_TRIANGLES, 0, 4 );
 		}
@@ -62,11 +65,35 @@ public class Chip8 implements Renderer {
 	}
 
 	public void onDrawFrame(GL10 gl) {
-		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | // OpenGL docs.
-                GL10.GL_DEPTH_BUFFER_BIT);
+		if (foo != null && foo.isloaded) {
+		foo.runCycle();
+		if (foo.isdirty())
+		{
+			gl.glClear(GL10.GL_COLOR_BUFFER_BIT | // OpenGL docs.
+	                GL10.GL_DEPTH_BUFFER_BIT);
+			renderSprites(gl);
+		}
+		if (foo.needsBeep())
+			;
+		//drawRECT(gl, new Point(0,0));
+		}
+		
+	}
 
-		drawRECT(gl, new Point(0,0));
+	private void renderSprites(GL10 gl) {
+		for (int x = 0; x < 64; ++x)
+		{
+			for (int y = 0; y < 32; ++y)
+			{
+				if (foo.gfx[x+(y*64)] != 0)
+					gl.glColor4f(1, 1, 1, .5f);
+				else
+					gl.glColor4f(0, 0, 0, .5f);
 
+				drawRECT(gl, new Point(x,y));
+			}
+		}
+		
 	}
 
 	public void onSurfaceChanged(GL10 gl, int w, int h) {

@@ -29,16 +29,16 @@
     <ClInclude Include="..\chip8\chip8.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\GLew\include\GL\glew.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GLew\include\GL\wglew.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\GLUT\glut.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\GLew\include\GL\glxew.h">
+    <ClInclude Include="..\glew-1.7.0\include\GL\wglew.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\glew-1.7.0\include\GL\glew.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\glew-1.7.0\include\GL\glxew.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

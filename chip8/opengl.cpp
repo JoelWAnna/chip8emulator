@@ -39,7 +39,6 @@ void renderSprites()
 
 void render(void)
 {
-	CHIP8.runCycle();
 	if (CHIP8.isdirty())
 	{
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -58,6 +57,14 @@ void key_pressed(unsigned char key, int x, int y)
 void key_released(unsigned char key, int x, int y)
 {
 	CHIP8.keyevent(key, true);
+}
+
+void RunCPU (int value)
+{
+	value++;
+	glutTimerFunc(3, RunCPU, value);
+	CHIP8.runCycle();
+	render();
 }
 
 void resizewindow(GLsizei w, GLsizei h)
@@ -111,13 +118,14 @@ opf.lStructSize = sizeof(OPENFILENAMEA);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowPosition(-1, -1);
 	glutInitWindowSize(640,480);
-	
 	glutCreateWindow("Chip8");
 	glutDisplayFunc(render);
-	glutIdleFunc(render);
+	//glutIdleFunc(render);
     glutReshapeFunc(resizewindow); 
 	glutKeyboardFunc(key_pressed);
 	glutKeyboardUpFunc(key_released); 
+	glutTimerFunc(0, RunCPU, 0);
+	//wglSwapIntervalEXT(0);
 	
 	glutMainLoop();
 

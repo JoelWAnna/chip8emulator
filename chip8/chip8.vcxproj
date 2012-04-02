@@ -39,8 +39,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\GLUT;../GLew\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\GLUT;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\GLUT;../glew-1.7.0\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\GLUT;../glew-1.7.0/lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -58,6 +58,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>glew32.lib;glut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -75,6 +76,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>glew32s.lib;glut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -86,9 +88,9 @@
   <ItemGroup>
     <ClInclude Include="..\chip8\chip8.h" />
     <ClInclude Include="..\chip8\chip8definitions.h" />
-    <ClInclude Include="..\GLew\include\GL\glew.h" />
-    <ClInclude Include="..\GLew\include\GL\glxew.h" />
-    <ClInclude Include="..\GLew\include\GL\wglew.h" />
+    <ClInclude Include="..\glew-1.7.0\include\GL\glew.h" />
+    <ClInclude Include="..\glew-1.7.0\include\GL\glxew.h" />
+    <ClInclude Include="..\glew-1.7.0\include\GL\wglew.h" />
     <ClInclude Include="..\GLUT\glut.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

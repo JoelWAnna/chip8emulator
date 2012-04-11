@@ -4,19 +4,23 @@ import android.app.Activity;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 public class Chip8emuActivity extends Activity {
-    /** Called when the activity is first created. */
+    private Chip8Renderer chip8;
+
+	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         GLSurfaceView view = new GLSurfaceView(this);
-        final Chip8Renderer chip8 = new Chip8Renderer();
+        chip8 = new Chip8Renderer();
         view.setRenderer(chip8);
         setContentView(view);
-        Thread t = new Thread( new Runnable() {
-
-			public void run() {
-				chip8.foo = new Chip8core();
-    	byte[] buffer = {
+    }
+    
+    @Override
+    public void onStart()
+    {
+    	super.onStart();
+		byte[] buffer = {
 			(byte)0xA2, (byte)0xCC, (byte)0x6A, (byte)0x06, (byte)0x61, (byte)0x03,
 			(byte)0x6B, (byte)0x08, (byte)0x60, (byte)0x00, (byte)0xD0, (byte)0x11,
 			(byte)0x70, (byte)0x08, (byte)0x7B, (byte)0xFF, (byte)0x3B, (byte)0x00,
@@ -57,9 +61,7 @@ public class Chip8emuActivity extends Activity {
 			(byte)0xEE, (byte)0x8A, (byte)0xCE, (byte)0x8C, (byte)0x8A, (byte)0xEE,
 			(byte)0x88, (byte)0xCC, (byte)0x88, (byte)0xEE
 		};
-
-    	chip8.foo.load_rom(buffer, buffer.length);}
-		});
-		t.run();
-    }
-}
+		
+		chip8.foo.load_rom(buffer, buffer.length);
+		}
+	}

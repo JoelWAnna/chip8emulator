@@ -97,6 +97,7 @@ public static final int chip8_fontset[] = {
 		sp     = 0;      // Reset stack pointer
 	 
 		// Clear display
+		gfx = new byte[GFX_SIZE];
 		clear_screen();
 		pressedkey = new byte[16];
 		for (int i = 0; i < 16; ++i)
@@ -569,64 +570,26 @@ public static final int chip8_fontset[] = {
 	void runOP0(int opcode)
 	{
 
-		switch (HI_LOWER_NIBBLE(opcode))
+		switch (LO_BYTE(opcode))
 		{
-		case 0:
-			switch (LO_BYTE(opcode))
+			case OPCODE_ZERO_CLEAR_SCREEN:
+			//00E0	Clears the screen.
+				clear_screen();
+				break;
+			case OPCODE_ZERO_RETURN:
 			{
-				case OPCODE_ZERO_CLEAR_SCREEN:
-				//00E0	Clears the screen.
-					clear_screen();
-					break;
-				case OPCODE_ZERO_RETURN:
-				{
-				//00EE	Returns from a subroutine.
-					int ret = stack[sp];
-					stack[sp] = 0;
-					if (sp > 0)
-						sp--;
-					NPC = ret+2;
-				}
-					break;
-				case SCHIP11_OPCODE_ZERO_SCROLL_RIGHT:
-				{
-				// 00FB
-				}
-					break;
-				case SCHIP11_OPCODE_ZERO_SCROLL_LEFT:
-				{
-				//00FC
-				}
-					break;
-				case SCHIP10_OPCODE_ZERO_EXIT:
-				{
-				//00FD
-				}
-					break;	
-				case SCHIP10_OPCODE_ZERO_DISABLE_EXT_SCN:
-				{
-				//00FE
-				}
-					break;	
-				case SCHIP10_OPCODE_ZERO_ENABLE_EXT_SCN:
-				{
-				//00FF
-				}
-					break;	
-				default:
-					if ((LO_BYTE(opcode) & 0xF0) == SCHIP11_OPCODE_ZERO_SCROLL_DOWN)
-					{
-					//00CN
-					}
-					else
-					//	printf("invalid op, %x", opcode);
-					break;
+			//00EE	Returns from a subroutine.
+				int ret = stack[sp];
+				stack[sp] = 0;
+				if (sp > 0)
+					sp--;
+				NPC = ret+2;
 			}
-			break;
-		default:
+				break;
+			default:
 			/*{
 			//0NNN	Calls RCA 1802 program at address NNN.
-				int address = MEMORY_ADDRESS(opcode);
+				u12 address = MEMORY_ADDRESS(opcode);
 				if (sp == 0xF)
 					;//error
 				sp++;

@@ -53,7 +53,8 @@ void chip8::initialize()
 	opcode = 0;      // Reset current opcode
 	I      = 0;      // Reset index register
 	sp     = 0;      // Reset stack pointer
- 
+	x_offset = 0;
+	y_offset = 0;
 	// Clear display
 	clear_screen();
 	memset(pressedkey, 0, 16);
@@ -89,6 +90,12 @@ void chip8::clear_screen()
 {
 	dirty = true;
 	memset(gfx, 0, GFX_SIZE);
+}
+
+void chip8::enableExtendedScreen(bool enable)
+{
+	//TODO: implement
+	printf("extended screen not implemented");
 }
 
 void chip8::draw_sprite(u8 x, u8 y, u8 N)
@@ -130,6 +137,55 @@ void chip8::draw_sprite(u8 x, u8 y, u8 N)
 	*/
 }
 
+void chip8::draw_sprite_extended(u8 x, u8 y)
+{
+	//TODO: implement
+	printf("draw_sprite_extended");
+	reg[0xF] = 1;
+}
+
+u12 runOP(u16 opcode)
+{
+	int NPC = operations[(opcode >> 12) & 0xF].function(opcode);
+	if (NPC < PROGRAM_START)
+	{
+	//	PC += NPC;
+	}
+	else
+	{
+	//	PC = NPC;
+	}
+}
+u16 op0(u16 opcode);
+u16 op_jump_NNN(u16 opcode)
+{
+	return opcode & 0xFFF;
+}
+
+u16 op_call_NNN(u16 opcode)
+{
+	// 2NNN	Calls subroutine at NNN.
+	u12 address = MEMORY_ADDRESS(opcode);
+//	if (sp == 0xF)
+		;//error
+//	sp++;
+//	stack[sp] = PC;
+	return address.to_u16();
+}
+
+u16 op_skip_VX_equal_NN(u16 opcode);
+u16 op_skip_VX_not_equal_NN(u16 opcode);
+u16 op_skip_VX_equal_VY(u16 opcode);
+u16 op_load_VX_VY(u16 opcode);
+u16 op_add_VX_NN(u16 opcode);
+u16 op_arith_VX_VY(u16 opcode);
+u16 op_skip_VX_not_equal_VY(u16 opcode);
+u16 op_load_I_NNN(u16 opcode);
+u16 op_jump_V0_NNN(u16 opcode);
+u16 op_load_rand_NN(u16 opcode);
+u16 op_draw_VX_VY_N(u16 opcode);
+u16 op_skip_VX(u16 opcode);
+u16 opF(u16 opcode);
 u12 chip8::runOP (u16 opcode)
 {
 	//printf("running opcode %x\n", opcode);
@@ -325,7 +381,9 @@ u12 chip8::runOP (u16 opcode)
 		u8 Y = LO_UPPER_NIBBLE(opcode);
 		u8 N = LO_LOWER_NIBBLE(opcode);
 		if (N == 0)
-			printf("implementme");
+		{
+			draw_sprite_extended(reg[X], reg[Y]);
+		}
 		draw_sprite(reg[X], reg[Y], N);
 	}
 		break;
@@ -396,9 +454,9 @@ u12 chip8::runOP (u16 opcode)
 			I = u12(reg[X]) * 5;
 			break;
 		case OPCODE_LOAD_SET_I_SCHIP10:
-		// FX29	Sets I to the location of the sprite for the character in VX.
+		// FX30	Sets I to the location of the sprite for the character in VX.
 		// Characters 0-F (in hexadecimal) are represented by a 4x5 font.
-			///I = u12(reg[X]) * 5;
+			I = u12(reg[X]) * 10;
 			printf("implementme");
 			break;
 
@@ -429,10 +487,30 @@ u12 chip8::runOP (u16 opcode)
 			break;
 		
 		case OPCODE_LOAD_STORE_REG_FLAGS_SCHIP10:
+		{
 		//FX75
+			if (X > 7)
+			{
+				X = 7;
+			}
+			for (int i = 0; i <= X; ++i)
+			{
+				rpl_flag[i] = reg[i];
+			}
+		}
+			break;
 		case OPCODE_LOAD_RETRIEVE_REG_FLAGS_SCHIP10:
+		{
 		//FX85
-			printf("implementme");
+			if (X > 7)
+			{
+				X = 7;
+			}
+			for (int i = 0; i <= X; ++i)
+			{
+				reg[i] = rpl_flag[i];
+			}
+		}
 			break;
 		default:
 			printf("invalid op %x", opcode);
@@ -498,32 +576,48 @@ void chip8::runOP0(u16 opcode)
 			case SCHIP11_OPCODE_ZERO_SCROLL_RIGHT:
 			{
 			// 00FB
+				if (x_offset < MAX_OFFSET)
+				{
+									if (x_offset < MAX_OFFSET)
+					x_offset += 4; // 2 in chip8 mode
+					dirty = true;
+				}
 			}
 				break;
 			case SCHIP11_OPCODE_ZERO_SCROLL_LEFT:
 			{
 			//00FC
+				if (x_offset > 0)
+				{
+					x_offset -= 4; // 2 in chip8 mode
+					dirty = true;
+				}
 			}
 				break;
 			case SCHIP10_OPCODE_ZERO_EXIT:
 			{
 			//00FD
+				exit(0);
 			}
 				break;	
 			case SCHIP10_OPCODE_ZERO_DISABLE_EXT_SCN:
 			{
 			//00FE
+				enableExtendedScreen(false);
 			}
 				break;	
 			case SCHIP10_OPCODE_ZERO_ENABLE_EXT_SCN:
 			{
 			//00FF
+				enableExtendedScreen(true);
 			}
 				break;	
 			default:
 				if ((LO_BYTE(opcode) & 0xF0) == SCHIP11_OPCODE_ZERO_SCROLL_DOWN)
 				{
 				//00CN
+					y_offset += LO_LOWER_NIBBLE(opcode);
+					dirty = true;
 				}
 				else
 					printf("invalid op, %x", opcode);

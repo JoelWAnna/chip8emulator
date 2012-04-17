@@ -25,12 +25,18 @@ private:
 	void initialize();
 	void clear_screen();
 	void draw_sprite(u8 X, u8 Y, u8 N);
+	void draw_sprite_extended(u8 X, u8 Y);
+	void enableExtendedScreen(bool enable=true);
+
+	u8 x_offset;
+	u8 y_offset;
 	u16 opcode;
 	// 0x000-0x1FF - Chip 8 interpreter (contains font set in emu)
 	// 0x050-0x0A0 - Used for the built in 4x5 pixel font set (0-F)
 	// 0x200-0xFFF - Program ROM and work RAM
 	u8 memory[MEMORY_SIZE];
 	u8 reg[NUMBER_OF_REGS];
+	u8 rpl_flag[NUMBER_OF_RPL_FLAGS];
 
 	u12 I;
 	u12 PC;

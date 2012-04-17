@@ -2,12 +2,54 @@
 #define __CHIP_8_DEFINITIONS
 
 const int NUMBER_OF_REGS = 16;
+const int NUMBER_OF_RPL_FLAGS = 8;
 const int STACK_SIZE = 16;
 const int FONT_SIZE = 80;
 const int MEMORY_SIZE = 4096;
 const int PROGRAM_START = 0x200;
 const int GFX_SIZE = 64*32;
-
+const int MAX_OFFSET = 0;
+typedef u16 (*opfunc)(u16) opfunc;
+struct optable
+{
+	u8 optype;
+	opfunc function;
+};
+u16 op0(u16);
+u16 op_jump_NNN(u16);
+u16 op_call_NNN(u16);
+u16 op_skip_VX_equal_NN(u16);
+u16 op_skip_VX_not_equal_NN(u16);
+u16 op_skip_VX_equal_VY(u16);
+u16 op_load_VX_VY(u16);
+u16 op_add_VX_NN(u16);
+u16 op_arith_VX_VY(u16);
+u16 op_skip_VX_not_equal_VY(u16);
+u16 op_load_I_NNN(u16);
+u16 op_jump_V0_NNN(u16);
+u16 op_load_rand_NN(u16);
+u16 op_draw_VX_VY_N(u16);
+u16 op_skip_VX(u16);
+u16 opF(u16);
+optable operations[0X10] =
+{
+	{0x0, &op0},
+	{0x1, &op_jump_NNN},
+	{0x2, &op_call_NNN},
+	{0x3, &op_skip_VX_equal_NN},
+	{0x4, &op_skip_VX_not_equal_NN},
+	{0x5, &op_skip_VX_equal_VY},
+	{0x6, &op_load_VX_VY},
+	{0x7, &op_add_VX_NN},
+	{0x8, &op_arith_VX_VY},
+	{0x9, &op_skip_VX_not_equal_VY},
+	{0xA, &op_load_I_NNN},
+	{0xB, &op_jump_V0_NNN},
+	{0xC, &op_load_rand_NN},
+	{0xD, &op_draw_VX_VY_N},
+	{0xE, &op_skip_VX},
+	{0xF, &opF},
+};
 
 const int OPCODE_ZERO = 0x0;
 	const int OPCODE_ZERO_RETURN = 0xEE;
